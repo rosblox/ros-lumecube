@@ -17,7 +17,6 @@ setup(
     maintainer_email='info@rosblox.com',
     description='TODO: Package description',
     license='BSD3',
-    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
                 'lumecube_node = ros_lumecube.ros_lumecube_module:main',
