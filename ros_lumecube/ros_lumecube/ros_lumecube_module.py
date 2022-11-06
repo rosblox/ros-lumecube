@@ -28,6 +28,7 @@ class Lumecube:
         self.SERVICE_UUID = "33826a4c-486a-11e4-a545-022807469bf0"
         self.LIGHT_CHARACTERISTIC = "33826a4d-486a-11e4-a545-022807469bf0"
         self.LIGHT_ON = struct.pack('>L', 0xFCA16400)
+        self.LIGHT_MIDDLE = struct.pack('>L', 0xFCA13200)
         self.LIGHT_OFF = struct.pack('>L', 0xFCA10000)
 
         self.connect(mac)
@@ -46,16 +47,14 @@ class Lumecube:
                 pass
 
     def blink(self):
-        self.on()
-        time.sleep(0.2)
-        self.off()
-        time.sleep(0.2)
-        self.on()
-        time.sleep(0.2)
-        self.off()
-
+        for i in range(3):
+            self.on()
+            time.sleep(0.1)
+            self.off()
+            time.sleep(0.1)
+        
     def on(self):
-        self._ch.write(self.LIGHT_ON)
+        self._ch.write(self.LIGHT_MIDDLE)
 
     def off(self):
         self._ch.write(self.LIGHT_OFF)
