@@ -1,4 +1,4 @@
-FROM ros:foxy-ros-core
+FROM ros:humble-ros-core
 
 RUN apt-get update && apt-get install -y \
     python3-pip libglib2.0-dev \
@@ -18,4 +18,10 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && colcon build --symlink-install
 
 WORKDIR /
 
+ENV FASTRTPS_DEFAULT_PROFILES_FILE=/fastrtps_profile.xml
+COPY fastrtps_profile.xml .
+
 COPY ros_entrypoint.sh .
+
+RUN echo 'alias build="colcon build --cmake-args --symlink-install  --event-handlers console_direct+"' >> ~/.bashrc
+RUN echo 'alias run="ros2 run ros_lumecube lumecube_node"' >> ~/.bashrc
