@@ -22,16 +22,21 @@ from rclpy.node import Node
 from std_srvs.srv import Trigger
 
 
-class LumeCube:
+class Lumecube:
     def __init__(self, mac):
         self.mac = mac
-        self.SERVICE_UUID = "33826A4C-486A-11E4-A545-022807469BF0"
-        self.LIGHT_CHARACTERISTIC = "33826A4D-486A-11E4-A545-022807469BF0"
+        self.SERVICE_UUID = "33826a4c-486a-11e4-a545-022807469bf0"
+        self.LIGHT_CHARACTERISTIC = "33826a4d-486a-11e4-a545-022807469bf0"
         self.LIGHT_ON = struct.pack('>L', 0xFCA16400)
         self.LIGHT_OFF = struct.pack('>L', 0xFCA10000)
         self._cube = btle.Peripheral(self.mac, addrType=btle.ADDR_TYPE_RANDOM)
+        
+        while self._cube.getState() != "conn":
+            time.sleep(0.5)
+
         self._service = self._cube.getServiceByUUID(self.SERVICE_UUID)
         self._ch = self._service.getCharacteristics(self.LIGHT_CHARACTERISTIC)[0]
+        
 
     def on(self):
         self._ch.write(self.LIGHT_ON)
@@ -40,34 +45,26 @@ class LumeCube:
         self._ch.write(self.LIGHT_OFF)
 
 
-
 class RosLumecube(Node):
 
     def __init__(self):
         super().__init__('lumecube')
         self.srv = self.create_service(Trigger, '~/trigger', self.trigger_cb)
-        self.lumecube = LumeCube("F6:82:8B:E5:C3:1B")
+        self.lumecube = Lumecube("F6:82:8B:E5:C3:1B")
         self.isOn = False
-        self.get_logger().warn("Done")
+        self.get_logger().info("Lumecube initiated")
 
     def trigger_cb(self, request, response):
-        while rclpy.ok():
-            try:
-                if self.isOn:
-                    self.lumecube.off()
-                    self.isOn = False
-                else:
-                    self.lumecube.on()
-                    self.isOn = True
-                break 
+        try:
+            if self.isOn:
+                self.lumecube.off()
+                self.isOn = False
+            else:
+                self.lumecube.on()
+                self.isOn = True
 
-            except btle.BTLEDisconnectError as e:
-                self.get_logger().warn(str(e))
-                self.lumecube = LumeCube("F6:82:8B:E5:C3:1B")
-            except btle.BTLEException as e:
-                self.get_logger().warn(str(e))
-                time.sleep(1)
-                pass
+        except btle.BTLEException as e:
+            self.get_logger().warn(str(e))
 
         response.success=True
         response.message=f"Lume is {'on' if self.isOn else 'off'}"
@@ -78,16 +75,12 @@ class RosLumecube(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    lumecube = RosLumecube()
+    ros_lumecube = RosLumecube()
 
-    rclpy.spin(lumecube)
-
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    lumecube.destroy_node()
-    rclpy.shutdown()
-
+    try:
+        rclpy.spin(ros_lumecube)
+    except KeyboardInterrupt:
+        pass
 
 if __name__ == '__main__':
     main()
