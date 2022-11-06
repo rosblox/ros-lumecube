@@ -1,1 +1,1 @@
-docker build -t ghcr.io/rosblox/ros-lumecube:foxy .
+docker build -t ghcr.io/rosblox/ros-lumecube:humble .
