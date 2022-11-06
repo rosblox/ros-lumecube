@@ -19,8 +19,3 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh && colcon build --symlink-install
 WORKDIR /
 
 COPY ros_entrypoint.sh .
-
-
-
-
-#COPY lumecube.py .
