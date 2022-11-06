@@ -25,26 +25,34 @@ from std_srvs.srv import Trigger
 
 class Lumecube:
     def __init__(self, mac):
-        self.mac = mac
         self.SERVICE_UUID = "33826a4c-486a-11e4-a545-022807469bf0"
         self.LIGHT_CHARACTERISTIC = "33826a4d-486a-11e4-a545-022807469bf0"
         self.LIGHT_ON = struct.pack('>L', 0xFCA16400)
         self.LIGHT_OFF = struct.pack('>L', 0xFCA10000)
 
-        isConnected = False
+        self.connect(mac)
+        self._service = self._cube.getServiceByUUID(self.SERVICE_UUID)
+        self._ch = self._service.getCharacteristics(self.LIGHT_CHARACTERISTIC)[0]
+        self.blink()
 
+    def connect(self,mac):
+        isConnected = False
         while not isConnected:
-            self._cube = btle.Peripheral(self.mac, addrType=btle.ADDR_TYPE_RANDOM)
+            self._cube = btle.Peripheral(mac, addrType=btle.ADDR_TYPE_RANDOM)
             time.sleep(2.0+random.random())
             try:
                 isConnected = self._cube.getState() == "conn"  
             except btle.BTLEDisconnectError:
                 pass
 
-
-        self._service = self._cube.getServiceByUUID(self.SERVICE_UUID)
-        self._ch = self._service.getCharacteristics(self.LIGHT_CHARACTERISTIC)[0]
-        
+    def blink(self):
+        self.on()
+        time.sleep(0.2)
+        self.off()
+        time.sleep(0.2)
+        self.on()
+        time.sleep(0.2)
+        self.off()
 
     def on(self):
         self._ch.write(self.LIGHT_ON)
