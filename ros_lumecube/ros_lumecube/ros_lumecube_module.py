@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import time
+import random
 
 import struct
 from bluepy import btle
@@ -29,10 +30,17 @@ class Lumecube:
         self.LIGHT_CHARACTERISTIC = "33826a4d-486a-11e4-a545-022807469bf0"
         self.LIGHT_ON = struct.pack('>L', 0xFCA16400)
         self.LIGHT_OFF = struct.pack('>L', 0xFCA10000)
-        self._cube = btle.Peripheral(self.mac, addrType=btle.ADDR_TYPE_RANDOM)
-        
-        while self._cube.getState() != "conn":
-            time.sleep(0.5)
+
+        isConnected = False
+
+        while not isConnected:
+            self._cube = btle.Peripheral(self.mac, addrType=btle.ADDR_TYPE_RANDOM)
+            time.sleep(2.0+random.random())
+            try:
+                isConnected = self._cube.getState() == "conn"  
+            except btle.BTLEDisconnectError:
+                pass
+
 
         self._service = self._cube.getServiceByUUID(self.SERVICE_UUID)
         self._ch = self._service.getCharacteristics(self.LIGHT_CHARACTERISTIC)[0]
